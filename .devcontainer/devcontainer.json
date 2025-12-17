@@ -88,5 +88,5 @@
     }
   },
   // 컨테이너 사용자
-  "remoteUser": "node"
+  "remoteUser": "root"
 }
