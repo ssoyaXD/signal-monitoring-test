@@ -2,39 +2,45 @@
 
 Next.js, Nest.js, Prometheus, Grafana를 사용한 간단한 모니터링 테스트 환경입니다.
 
+> 💡 **빠르게 시작하고 싶다면?** [QUICK_START.md](./QUICK_START.md)를 확인하세요!
+
 ## 🛠️ 기술 스택
 
 - **Frontend**: Next.js 14 (TypeScript)
 - **Backend**: Nest.js 10 (TypeScript)
 - **Monitoring**: Prometheus + Grafana
+- **Package Manager**: pnpm (workspace)
 - **Containerization**: Docker & Docker Compose
 
 ## 📋 프로젝트 구조
 
 ```
 signal-monitoring-test/
-├── backend/                 # Nest.js 백엔드
+├── backend/                    # Nest.js 백엔드
 │   ├── src/
-│   │   ├── metrics/        # Prometheus 메트릭 모듈
+│   │   ├── metrics/           # Prometheus 메트릭 모듈
 │   │   ├── app.module.ts
 │   │   ├── app.controller.ts
 │   │   ├── app.service.ts
 │   │   └── main.ts
 │   ├── Dockerfile
 │   └── package.json
-├── frontend/               # Next.js 프론트엔드
+├── frontend/                   # Next.js 프론트엔드
 │   ├── app/
-│   │   ├── page.tsx       # 메인 페이지
+│   │   ├── page.tsx           # 메인 페이지
 │   │   ├── layout.tsx
 │   │   └── globals.css
 │   ├── Dockerfile
 │   └── package.json
-├── prometheus/             # Prometheus 설정
+├── prometheus/                 # Prometheus 설정
 │   └── prometheus.yml
-├── grafana/               # Grafana 설정
+├── grafana/                    # Grafana 설정
 │   └── provisioning/
-│       ├── datasources/   # 데이터소스 설정
-│       └── dashboards/    # 대시보드 설정
+│       ├── datasources/       # 데이터소스 설정
+│       └── dashboards/        # 대시보드 설정
+├── pnpm-workspace.yaml        # pnpm workspace 설정
+├── package.json               # 루트 package.json (모노레포)
+├── .npmrc                     # pnpm 설정
 ├── docker-compose.yml
 └── README.md
 ```
@@ -45,13 +51,33 @@ signal-monitoring-test/
 
 - Docker 및 Docker Compose 설치
 - Node.js 20+ (로컬 개발 시)
+- pnpm 8+ (로컬 개발 시)
 
-### 2. Docker Compose로 전체 스택 실행
+### 2-1. Docker Compose로 전체 스택 실행 (추천)
 
 ```bash
 # 프로젝트 루트 디렉토리에서 실행
 docker-compose up -d
+
+# 또는 pnpm 스크립트 사용
+pnpm docker:up
 ```
+
+### 2-2. 로컬 개발 환경 실행 (pnpm workspace)
+
+```bash
+# 1. 모든 의존성 설치
+pnpm install
+
+# 2. 개발 서버 실행 (frontend + backend 동시 실행)
+pnpm dev
+
+# 또는 개별 실행
+pnpm dev:frontend  # Frontend만 실행
+pnpm dev:backend   # Backend만 실행
+```
+
+**주의**: 로컬 개발 시에는 Prometheus와 Grafana를 별도로 실행해야 합니다.
 
 ### 3. 서비스 접속
 
@@ -119,34 +145,69 @@ docker-compose up -d
 ```bash
 # 모든 컨테이너 중지 및 제거
 docker-compose down
+# 또는
+pnpm docker:down
 
 # 볼륨까지 함께 제거 (데이터 초기화)
 docker-compose down -v
 ```
 
-## 🔧 로컬 개발 모드
+## 🔧 pnpm 명령어
 
-Docker 없이 로컬에서 개발하려면:
+이 프로젝트는 pnpm workspace를 사용합니다. 루트에서 다음 명령어를 사용할 수 있습니다:
 
-### Backend
-
-```bash
-cd backend
-npm install
-npm run start:dev
-# http://localhost:4000 에서 실행
-```
-
-### Frontend
+### 개발
 
 ```bash
-cd frontend
-npm install
-npm run dev
-# http://localhost:3000 에서 실행
+pnpm install           # 모든 의존성 설치
+pnpm dev              # Frontend + Backend 동시 개발 모드 실행
+pnpm dev:frontend     # Frontend만 개발 모드 실행
+pnpm dev:backend      # Backend만 개발 모드 실행
 ```
 
-**주의**: 로컬 개발 시에는 Prometheus와 Grafana를 별도로 실행해야 합니다.
+### 빌드
+
+```bash
+pnpm build            # 전체 프로젝트 빌드
+pnpm build:frontend   # Frontend만 빌드
+pnpm build:backend    # Backend만 빌드
+```
+
+### 프로덕션 실행
+
+```bash
+pnpm start            # Frontend + Backend 동시 실행
+pnpm start:frontend   # Frontend만 실행
+pnpm start:backend    # Backend만 실행
+```
+
+### Docker 관리
+
+```bash
+pnpm docker:up        # Docker Compose 시작
+pnpm docker:down      # Docker Compose 중지
+pnpm docker:logs      # 로그 확인
+pnpm docker:rebuild   # 재빌드 후 시작
+```
+
+### 정리
+
+```bash
+pnpm clean            # 빌드 결과물 삭제
+```
+
+### 특정 패키지에 의존성 추가
+
+```bash
+# Backend에 패키지 추가
+pnpm --filter backend add [package-name]
+
+# Frontend에 패키지 추가
+pnpm --filter frontend add [package-name]
+
+# Dev 의존성 추가
+pnpm --filter backend add -D [package-name]
+```
 
 ## 📝 API 엔드포인트
 
@@ -207,6 +268,8 @@ ports:
 - [Next.js 문서](https://nextjs.org/docs)
 - [Nest.js 문서](https://docs.nestjs.com/)
 - [prom-client (Node.js Prometheus 클라이언트)](https://github.com/siimon/prom-client)
+- [pnpm 문서](https://pnpm.io/)
+- [pnpm workspace](https://pnpm.io/workspaces)
 
 ## 📄 라이선스
 

@@ -1,0 +1,42 @@
+{
+  "name": "signal-monitoring-test",
+  "version": "1.0.0",
+  "description": "Monitoring test project with Next.js, Nest.js, Prometheus, and Grafana",
+  "private": true,
+  "scripts": {
+    "install:all": "pnpm install",
+    "dev": "pnpm run --parallel dev",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "dev:backend": "pnpm --filter backend start:dev",
+    "build": "pnpm run --parallel build",
+    "build:frontend": "pnpm --filter frontend build",
+    "build:backend": "pnpm --filter backend build",
+    "start": "pnpm run --parallel start",
+    "start:frontend": "pnpm --filter frontend start",
+    "start:backend": "pnpm --filter backend start:prod",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:rebuild": "docker-compose up -d --build",
+    "clean": "pnpm --filter backend clean && pnpm --filter frontend clean"
+  },
+  "keywords": [
+    "nextjs",
+    "nestjs",
+    "prometheus",
+    "grafana",
+    "monitoring",
+    "monorepo",
+    "pnpm"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}
+
