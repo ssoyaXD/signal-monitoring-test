@@ -1,0 +1,17 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Prometheus 자체 메트릭
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # NestJS 백엔드 메트릭
+  - job_name: 'nestjs-backend'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['backend:4000']
+    scrape_interval: 5s
+
