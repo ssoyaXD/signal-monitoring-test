@@ -53,6 +53,27 @@ signal-monitoring-test/
 - Node.js 20+ (로컬 개발 시)
 - pnpm 8+ (로컬 개발 시)
 
+### 2-0. VS Code Dev Container로 개발 환경 실행 (가장 추천! ⭐)
+
+완벽하게 구성된 개발 환경을 컨테이너로 바로 시작할 수 있습니다:
+
+```bash
+# 1. VS Code 설치
+# 2. Docker Desktop 설치 및 실행
+# 3. VS Code에서 "Dev Containers" 확장 설치
+# 4. 프로젝트 폴더를 VS Code로 열기
+# 5. Ctrl+Shift+P (또는 Cmd+Shift+P) → "Dev Containers: Reopen in Container" 선택
+```
+
+Dev Container는 다음을 자동으로 제공합니다:
+- ✅ Node.js 20 + pnpm
+- ✅ Docker-in-Docker (컨테이너 내에서 docker-compose 사용 가능)
+- ✅ 자동 의존성 설치
+- ✅ 모든 필요한 VS Code 확장 프로그램
+- ✅ Git, Zsh, Oh My Zsh 등 개발 도구
+
+더 자세한 내용은 [.devcontainer/README.md](./.devcontainer/README.md)를 참고하세요.
+
 ### 2-1. Docker Compose로 전체 스택 실행 (추천)
 
 ```bash

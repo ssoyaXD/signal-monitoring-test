@@ -1,0 +1,16 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "ms-azuretools.vscode-docker",
+    "ms-vscode-remote.remote-containers",
+    "eamodio.gitlens",
+    "mhutchie.git-graph",
+    "christian-kohler.path-intellisense",
+    "usernamehw.errorlens",
+    "editorconfig.editorconfig",
+    "ms-vscode.vscode-typescript-next"
+  ]
+}
+

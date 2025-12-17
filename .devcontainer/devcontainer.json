@@ -1,0 +1,92 @@
+{
+  "name": "Signal Monitoring Test Dev Environment",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "devcontainer",
+  "workspaceFolder": "/workspace",
+  // 컨테이너가 시작된 후 실행할 명령
+  "postCreateCommand": "pnpm install",
+  // VS Code 확장 프로그램 설치
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // TypeScript & JavaScript
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        // Framework 관련
+        "bradlc.vscode-tailwindcss",
+        // Docker
+        "ms-azuretools.vscode-docker",
+        // Git
+        "eamodio.gitlens",
+        "mhutchie.git-graph",
+        // 유용한 도구들
+        "christian-kohler.path-intellisense",
+        "usernamehw.errorlens",
+        "editorconfig.editorconfig",
+        "ms-vscode.vscode-typescript-next"
+      ],
+      "settings": {
+        "typescript.tsdk": "node_modules/typescript/lib",
+        "typescript.enablePromptUseWorkspaceTsdk": true,
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        },
+        "files.eol": "\n",
+        "files.insertFinalNewline": true,
+        "files.trimTrailingWhitespace": true,
+        "[typescript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[typescriptreact]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[javascript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[json]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        }
+      }
+    }
+  },
+  // 포트 포워딩
+  "forwardPorts": [
+    3000, // Next.js Frontend
+    4000, // NestJS Backend
+    9090, // Prometheus
+    3001 // Grafana
+  ],
+  // 포트 라벨
+  "portsAttributes": {
+    "3000": {
+      "label": "Frontend (Next.js)",
+      "onAutoForward": "notify"
+    },
+    "4000": {
+      "label": "Backend (NestJS)",
+      "onAutoForward": "notify"
+    },
+    "9090": {
+      "label": "Prometheus",
+      "onAutoForward": "silent"
+    },
+    "3001": {
+      "label": "Grafana",
+      "onAutoForward": "silent"
+    }
+  },
+  // 컨테이너 기능
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "dockerDashComposeVersion": "v2"
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest"
+    }
+  },
+  // 컨테이너 사용자
+  "remoteUser": "node"
+}
