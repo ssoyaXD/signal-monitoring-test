@@ -1,0 +1,21 @@
+apiVersion: 1
+
+datasources:
+  - name: PostgreSQL
+    uid: PostgreSQL
+    type: postgres
+    access: proxy
+    url: postgres:5432
+    database: vibration_db
+    user: postgres
+    secureJsonData:
+      password: postgres
+    jsonData:
+      sslmode: disable
+      tlsSkipVerify: true
+      postgresVersion: 1500
+      timescaledb: false
+    isDefault: false
+    editable: true
+
+

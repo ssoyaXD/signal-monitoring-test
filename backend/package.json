@@ -4,8 +4,9 @@
   "description": "NestJS Backend with Prometheus Metrics",
   "scripts": {
     "build": "nest build",
+    "dev": "bash -c 'PORT=4000; for tool in lsof fuser; do if command -v $tool >/dev/null 2>&1; then PID=$($tool -ti :$PORT 2>/dev/null || $tool $PORT/tcp 2>/dev/null | awk \"{print \\$1}\"); [ -n \"$PID\" ] && [ \"$PID\" != \"PID\" ] && kill -9 $PID 2>/dev/null && echo \"포트 $PORT 프로세스 종료: PID=$PID\" && sleep 1; break; fi; done' && nest start --watch",
     "start": "nest start",
-    "start:dev": "nest start --watch",
+    "start:dev": "bash -c 'PORT=4000; for tool in lsof fuser; do if command -v $tool >/dev/null 2>&1; then PID=$($tool -ti :$PORT 2>/dev/null || $tool $PORT/tcp 2>/dev/null | awk \"{print \\$1}\"); [ -n \"$PID\" ] && [ \"$PID\" != \"PID\" ] && kill -9 $PID 2>/dev/null && echo \"포트 $PORT 프로세스 종료: PID=$PID\" && sleep 1; break; fi; done' && nest start --watch",
     "start:prod": "node dist/main",
     "clean": "rm -rf dist node_modules"
   },

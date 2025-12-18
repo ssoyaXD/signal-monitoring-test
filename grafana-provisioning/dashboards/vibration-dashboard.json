@@ -1,0 +1,628 @@
+{
+  "title": "진동 데이터 모니터링 대시보드",
+  "tags": [
+    "vibration",
+    "sensors",
+    "monitoring"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 27,
+  "version": 0,
+  "refresh": "10s",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "type": "timeseries",
+      "title": "RMS 진동값 추이",
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL",
+        "name": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL",
+            "name": "PostgreSQL"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT timestamp as time, sensor_id, rms_value as value FROM vibration_data WHERE $__timeFilter(timestamp) ORDER BY timestamp",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [
+                  {
+                    "name": "time",
+                    "type": "timestamp"
+                  }
+                ],
+                "type": "time"
+              },
+              {
+                "parameters": [
+                  {
+                    "name": "sensor_id",
+                    "type": "string"
+                  }
+                ],
+                "type": "string"
+              },
+              {
+                "parameters": [
+                  {
+                    "name": "value",
+                    "type": "number"
+                  }
+                ],
+                "type": "number"
+              }
+            ],
+            "groupBy": [
+              {
+                "name": "sensor_id",
+                "type": "string"
+              }
+            ],
+            "metricColumn": "sensor_id"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10
+              },
+              {
+                "color": "red",
+                "value": 15
+              }
+            ]
+          },
+          "unit": "m/s²"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "type": "timeseries",
+      "title": "3축 가속도 (X, Y, Z)",
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL",
+        "name": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL",
+            "name": "PostgreSQL"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT timestamp as time, sensor_id, acceleration_x as \"X축\", acceleration_y as \"Y축\", acceleration_z as \"Z축\" FROM vibration_data WHERE $__timeFilter(timestamp) AND sensor_id = 'SENSOR_001' ORDER BY timestamp",
+          "refId": "A",
+          "format": "table",
+          "sql": {}
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2
+          },
+          "unit": "m/s²"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 8
+      },
+      "type": "timeseries",
+      "title": "주파수 성분 분석",
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL",
+        "name": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL",
+            "name": "PostgreSQL"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT timestamp as time, frequency_1 as \"1차 고조파\", frequency_2 as \"2차 고조파\", frequency_3 as \"3차 고조파\" FROM vibration_data WHERE $__timeFilter(timestamp) AND sensor_id = 'SENSOR_001' ORDER BY timestamp",
+          "refId": "A",
+          "format": "table",
+          "sql": {}
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "m/s²"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 8
+      },
+      "type": "timeseries",
+      "title": "온도 추이",
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL",
+        "name": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL",
+            "name": "PostgreSQL"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT timestamp as time, sensor_id, temperature as value FROM vibration_data WHERE $__timeFilter(timestamp) ORDER BY timestamp",
+          "refId": "A",
+          "format": "table",
+          "sql": {}
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "celsius"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 16,
+        "y": 8
+      },
+      "type": "stat",
+      "title": "현재 RMS 평균값",
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL",
+        "name": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL",
+            "name": "PostgreSQL"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT AVG(rms_value) as value FROM vibration_data WHERE timestamp >= NOW() - INTERVAL '1 hour'",
+          "refId": "A",
+          "format": "table",
+          "sql": {}
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10
+              },
+              {
+                "color": "red",
+                "value": 15
+              }
+            ]
+          },
+          "unit": "m/s²",
+          "decimals": 2
+        }
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "orientation": "auto"
+      }
+    },
+    {
+      "id": 6,
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 0,
+        "y": 16
+      },
+      "type": "table",
+      "title": "센서별 최근 상태",
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL",
+        "name": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL",
+            "name": "PostgreSQL"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT s.sensor_id, s.sensor_name, s.location, v.rms_value, v.temperature, v.status, v.timestamp FROM sensors s LEFT JOIN LATERAL ( SELECT rms_value, temperature, status, timestamp FROM vibration_data WHERE sensor_id = s.sensor_id ORDER BY timestamp DESC LIMIT 1 ) v ON true ORDER BY s.sensor_id",
+          "refId": "A",
+          "format": "table",
+          "sql": {
+            "groupBy": [
+              {
+                "name": "sensor_id",
+                "type": "string"
+              }
+            ],
+            "metricColumn": "sensor_id",
+            "columns": [
+              {
+                "parameters": [
+                  {
+                    "name": "time",
+                    "type": "timestamp"
+                  }
+                ],
+                "type": "time"
+              },
+              {
+                "parameters": [
+                  {
+                    "name": "sensor_id",
+                    "type": "string"
+                  }
+                ],
+                "type": "string"
+              },
+              {
+                "parameters": [
+                  {
+                    "name": "value",
+                    "type": "number"
+                  }
+                ],
+                "type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rms_value"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "m/s²"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "thresholds": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 10
+                    },
+                    {
+                      "color": "red",
+                      "value": 15
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "temperature"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "status"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text",
+                  "thresholds": [
+                    {
+                      "color": "green",
+                      "value": "normal"
+                    },
+                    {
+                      "color": "yellow",
+                      "value": "warning"
+                    },
+                    {
+                      "color": "red",
+                      "value": "critical"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 8,
+        "y": 16
+      },
+      "type": "bargauge",
+      "title": "센서별 평균 RMS 값",
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL",
+        "name": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL",
+            "name": "PostgreSQL"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT s.sensor_name, AVG(v.rms_value) as value FROM sensors s JOIN vibration_data v ON s.sensor_id = v.sensor_id WHERE v.timestamp >= NOW() - INTERVAL '1 hour' GROUP BY s.sensor_name ORDER BY value DESC",
+          "refId": "A",
+          "format": "table",
+          "sql": {
+            "groupBy": [
+              {
+                "name": "sensor_id",
+                "type": "string"
+              }
+            ],
+            "metricColumn": "sensor_id",
+            "columns": [
+              {
+                "parameters": [
+                  {
+                    "name": "time",
+                    "type": "timestamp"
+                  }
+                ],
+                "type": "time"
+              },
+              {
+                "parameters": [
+                  {
+                    "name": "sensor_id",
+                    "type": "string"
+                  }
+                ],
+                "type": "string"
+              },
+              {
+                "parameters": [
+                  {
+                    "name": "value",
+                    "type": "number"
+                  }
+                ],
+                "type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10
+              },
+              {
+                "color": "red",
+                "value": 15
+              }
+            ]
+          },
+          "unit": "m/s²",
+          "min": 0,
+          "max": 25
+        }
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient"
+      }
+    },
+    {
+      "id": 8,
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 16,
+        "y": 16
+      },
+      "type": "piechart",
+      "title": "상태별 분포",
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL",
+        "name": "PostgreSQL"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL",
+            "name": "PostgreSQL"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT status, COUNT(*) as count FROM vibration_data WHERE timestamp >= NOW() - INTERVAL '1 hour' GROUP BY status",
+          "refId": "A",
+          "format": "table",
+          "sql": {}
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right"
+        },
+        "pieType": "pie"
+      }
+    }
+  ],
+  "editable": true,
+  "graphTooltip": 0,
+  "links": [],
+  "annotations": {
+    "list": []
+  },
+  "id": null,
+  "uid": "vibration-dashboard"
+}

@@ -1,66 +1,134 @@
-# Dependencies
-node_modules/
-.pnp
-.pnp.js
+# Docker volumes
+prometheus-data/
+grafana-data/
 
-# Testing
-coverage/
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.pytest_cache/
+*.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+.tox/
+.mypy_cache/
+.dmypy.json
+
+# IDE
+.vscode/
+.vscode-server/
+.vscode-remote/
+.vscode-test/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pnpm-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+.env.local
+
+# Node.js
+node_modules/
+.npm
+.eslintcache
+.node_repl_history
+*.tsbuildinfo
+.yarn-integrity
 
 # Next.js
 .next/
 out/
 build/
-
-# Production
 dist/
-*.local
-
-# Misc
-.DS_Store
-*.pem
-
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-# Local env files
-.env
-.env*.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Vercel
 .vercel
-
-# TypeScript
-*.tsbuildinfo
-next-env.d.ts
-
-# IDEs
-.idea/
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
-.devcontainer/.vscode
-
-# OS
-Thumbs.db
-
-# Docker
-docker-compose.override.yml
-
-# Logs
-logs/
-*.log
+.turbo
 
 # pnpm
+.pnpm-store/
 .pnpm-debug.log*
 
-# vscode
-.vscode-server/
-.vscode-server-insiders/
-.vscode/
+# Environment
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Backup files
+*.backup
+*.bak
+*.old
+*~
+backup/
+backups/
+
+# Archive files
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.rar
+*.7z
+*.gz
+*.bz2
+*.xz
+
+# Grafana
+grafana-plugins/
+grafana.db
+grafana.db-shm
+grafana.db-wal
+
+# Prometheus
+prometheus/data/
+prometheus.log
+
+# Generated files
+*.generated.*
+.cache/
+
+# Test
+coverage/
+.nyc_output/
+test-results/
+junit.xml
+
+# Runtime
+*.pid
+*.seed
+*.pid.lock
+pids/

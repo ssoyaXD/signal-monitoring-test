@@ -11,31 +11,68 @@ services:
       - monitoring-network
     restart: unless-stopped
 
-  # Frontend (Next.js)
-  frontend:
-    build: ./frontend
-    container_name: nextjs-frontend
+  # PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=vibration_db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d:ro
     ports:
-      - "3000:3000"
-    depends_on:
-      - backend
+      - "5432:5432"
     networks:
       - monitoring-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Prometheus
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus-data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--web.enable-lifecycle'
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        cat > /etc/prometheus/prometheus.yml << 'EOF'
+        global:
+          scrape_interval: 15s
+          evaluation_interval: 15s
+          external_labels:
+            origin_prometheus: 'local-prometheus'
+            cluster: 'demo-cluster'
+
+        scrape_configs:
+          - job_name: 'prometheus'
+            static_configs:
+              - targets: ['localhost:9090']
+                labels:
+                  origin_prometheus: 'local-prometheus'
+
+          - job_name: 'node-exporter'
+            static_configs:
+              - targets: ['node-exporter:9100']
+                labels:
+                  origin_prometheus: 'local-prometheus'
+                  nodename: 'demo-server-01'
+                  environment: 'demo'
+
+          - job_name: 'nestjs-backend'
+            metrics_path: '/metrics'
+            static_configs:
+              - targets: ['host.docker.internal:4000']
+            scrape_interval: 5s
+        EOF
+        exec /bin/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --web.console.libraries=/usr/share/prometheus/console_libraries --web.console.templates=/usr/share/prometheus/consoles --web.enable-lifecycle
     ports:
       - "9090:9090"
     networks:
@@ -48,15 +85,16 @@ services:
     container_name: grafana
     volumes:
       - grafana-data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning
+      - /workspace/grafana-provisioning:/etc/grafana/provisioning:ro
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false
     ports:
-      - "3001:3000"
+      - "3000:3000"
     depends_on:
       - prometheus
+      - postgres
     networks:
       - monitoring-network
     restart: unless-stopped
@@ -68,4 +106,5 @@ networks:
 volumes:
   prometheus-data:
   grafana-data:
+  postgres-data:
 
