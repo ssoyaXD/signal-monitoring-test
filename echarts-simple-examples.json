@@ -1,0 +1,343 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "title": "ECharts 진동 데이터 대시보드",
+  "tags": ["echarts", "vibration", "sensors"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 0,
+  "refresh": "10s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "type": "volkovlabs-echarts-panel",
+      "title": "진동 데이터 레이더 차트",
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "options": {
+        "getOption": "// 진동 데이터 레이더 차트\n// 최신 진동 데이터를 가져옵니다\nconst dataSource = context?.panel?.data || context?.data || {};\nconst series = dataSource.series || [];\nlet data = [0, 0, 0, 0, 0];\n\nif (series.length > 0 && series[0].fields) {\n  const fields = series[0].fields;\n  const getValue = (fieldName) => {\n    const field = fields.find(f => f.name === fieldName || f.labels?.field === fieldName);\n    if (field && field.values && field.values.length > 0) {\n      return parseFloat(field.values[field.values.length - 1]) || 0;\n    }\n    return 0;\n  };\n  \n  // 데이터 추출 (절대값 사용)\n  data = [\n    Math.abs(getValue('acceleration_x') || 0),\n    Math.abs(getValue('acceleration_y') || 0),\n    Math.abs(getValue('acceleration_z') || 0),\n    getValue('rms_value') || 0,\n    getValue('temperature') || 0\n  ];\n}\n\n// 최대값 계산 (스케일링을 위해)\nconst maxValues = [10, 10, 10, 15, 50]; // X, Y, Z 가속도, RMS, 온도\n\nconst option = {\n  title: {\n    text: '진동 센서 데이터',\n    left: 'center',\n    textStyle: { color: '#fff' }\n  },\n  tooltip: {\n    formatter: function(params) {\n      const names = ['X축 가속도', 'Y축 가속도', 'Z축 가속도', 'RMS 값', '온도'];\n      const units = ['m/s²', 'm/s²', 'm/s²', 'm/s²', '°C'];\n      let result = params.name + '<br/>';\n      params.value.forEach((val, idx) => {\n        result += names[idx] + ': ' + val.toFixed(2) + ' ' + units[idx] + '<br/>';\n      });\n      return result;\n    }\n  },\n  radar: {\n    indicator: [\n      { name: 'X축 가속도', max: maxValues[0] },\n      { name: 'Y축 가속도', max: maxValues[1] },\n      { name: 'Z축 가속도', max: maxValues[2] },\n      { name: 'RMS 값', max: maxValues[3] },\n      { name: '온도', max: maxValues[4] }\n    ],\n    center: ['50%', '55%'],\n    radius: '70%',\n    nameGap: 10,\n    splitNumber: 5,\n    shape: 'polygon',\n    splitArea: {\n      areaStyle: {\n        color: ['rgba(250,250,250,0.1)', 'rgba(200,200,200,0.1)']\n      }\n    },\n    axisLine: {\n      lineStyle: {\n        color: 'rgba(211, 253, 250, 0.8)'\n      }\n    },\n    splitLine: {\n      lineStyle: {\n        color: 'rgba(211, 253, 250, 0.8)'\n      }\n    },\n    name: {\n      textStyle: {\n        color: '#fff',\n        fontSize: 12\n      }\n    }\n  },\n  series: [{\n    type: 'radar',\n    data: [{\n      value: data,\n      name: '현재 상태',\n      areaStyle: { color: 'rgba(64, 158, 255, 0.3)' },\n      lineStyle: { color: '#409EFF', width: 2 },\n      itemStyle: { color: '#409EFF' }\n    }]\n  }]\n};\nreturn option;"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT acceleration_x, acceleration_y, acceleration_z, rms_value, temperature FROM vibration_data WHERE timestamp >= NOW() - INTERVAL '1 hour' ORDER BY timestamp DESC LIMIT 1",
+          "refId": "A",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "type": "volkovlabs-echarts-panel",
+      "title": "RMS 값 게이지",
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "options": {
+        "getOption": "// RMS 값 게이지 차트\nconst dataSource = context?.panel?.data || context?.data || {};\nconst series = dataSource.series || [];\nlet rmsValue = 0;\n\nif (series.length > 0 && series[0].fields) {\n  const fields = series[0].fields;\n  const rmsField = fields.find(f => f.name === 'rms_value' || f.labels?.field === 'rms_value');\n  if (rmsField && rmsField.values && rmsField.values.length > 0) {\n    rmsValue = parseFloat(rmsField.values[rmsField.values.length - 1]) || 0;\n  }\n}\n\n// RMS 값 범위: 0-15 m/s² (일반적인 진동 범위)\nconst maxRms = 15;\nconst rmsPercent = Math.min((rmsValue / maxRms) * 100, 100);\n\n// 색상 결정 (0-5: 녹색, 5-10: 노란색, 10-15: 빨간색)\nlet color = '#67e0e3';\nif (rmsValue > 10) color = '#ee6666';\nelse if (rmsValue > 5) color = '#fac858';\n\nconst option = {\n  series: [{\n    type: 'gauge',\n    startAngle: 200,\n    endAngle: -20,\n    min: 0,\n    max: maxRms,\n    splitNumber: 5,\n    radius: '90%',\n    axisLine: {\n      lineStyle: {\n        width: 20,\n        color: [[rmsPercent / 100, color], [1, '#e6ebf8']]\n      }\n    },\n    pointer: { itemStyle: { color: 'auto' } },\n    axisTick: {\n      distance: -30,\n      length: 8,\n      lineStyle: { color: '#fff', width: 2 }\n    },\n    splitLine: {\n      distance: -30,\n      length: 14,\n      lineStyle: { color: '#fff', width: 3 }\n    },\n    axisLabel: {\n      color: '#fff',\n      distance: -50,\n      fontSize: 12\n    },\n    detail: {\n      valueAnimation: true,\n      formatter: '{value} m/s²',\n      color: '#fff',\n      fontSize: 18,\n      offsetCenter: [0, '60%']\n    },\n    title: {\n      offsetCenter: [0, '-20%'],\n      fontSize: 16,\n      color: '#fff'\n    },\n    data: [{ value: rmsValue, name: 'RMS 값' }]\n  }]\n};\nreturn option;"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT rms_value FROM vibration_data WHERE timestamp >= NOW() - INTERVAL '1 hour' ORDER BY timestamp DESC LIMIT 1",
+          "refId": "A",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "type": "volkovlabs-echarts-panel",
+      "title": "온도 게이지",
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "options": {
+        "getOption": "// 온도 게이지 차트\nconst dataSource = context?.panel?.data || context?.data || {};\nconst series = dataSource.series || [];\nlet tempValue = 0;\n\nif (series.length > 0 && series[0].fields) {\n  const fields = series[0].fields;\n  const tempField = fields.find(f => f.name === 'temperature' || f.labels?.field === 'temperature');\n  if (tempField && tempField.values && tempField.values.length > 0) {\n    tempValue = parseFloat(tempField.values[tempField.values.length - 1]) || 0;\n  }\n}\n\n// 온도 범위: 0-50°C\nconst maxTemp = 50;\nconst tempPercent = Math.min((tempValue / maxTemp) * 100, 100);\n\n// 색상 결정\nlet color = '#67e0e3';\nif (tempValue > 40) color = '#ee6666';\nelse if (tempValue > 30) color = '#fac858';\nelse if (tempValue > 20) color = '#91cc75';\n\nconst option = {\n  series: [{\n    type: 'gauge',\n    startAngle: 90,\n    endAngle: -270,\n    radius: '85%',\n    min: 0,\n    max: maxTemp,\n    axisLine: {\n      lineStyle: {\n        width: 30,\n        color: [[tempPercent / 100, color], [1, '#e6ebf8']]\n      }\n    },\n    pointer: { show: false },\n    axisTick: { show: false },\n    splitLine: { show: false },\n    axisLabel: {\n      show: false\n    },\n    detail: {\n      valueAnimation: true,\n      formatter: '{value}°C',\n      color: '#fff',\n      fontSize: 24,\n      offsetCenter: [0, '0%']\n    },\n    data: [{ value: tempValue, name: '온도' }]\n  }]\n};\nreturn option;"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT temperature FROM vibration_data WHERE timestamp >= NOW() - INTERVAL '1 hour' AND temperature IS NOT NULL ORDER BY timestamp DESC LIMIT 1",
+          "refId": "A",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "type": "volkovlabs-echarts-panel",
+      "title": "센서별 진동 데이터 비교",
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "options": {
+        "getOption": "// 센서별 진동 데이터 레이더 차트\nconst dataSource = context?.panel?.data || context?.data || {};\nconst series = dataSource.series || [];\nconst sensorData = [];\n\nif (series.length > 0) {\n  series.forEach((s, idx) => {\n    if (s.fields) {\n      const fields = s.fields;\n      const getValue = (fieldName) => {\n        const field = fields.find(f => f.name === fieldName || f.labels?.field === fieldName);\n        if (field && field.values && field.values.length > 0) {\n          return parseFloat(field.values[field.values.length - 1]) || 0;\n        }\n        return 0;\n      };\n      \n      const sensorName = getValue('sensor_name') || getValue('sensor_id') || `센서 ${idx + 1}`;\n      const data = [\n        Math.abs(getValue('acceleration_x') || 0),\n        Math.abs(getValue('acceleration_y') || 0),\n        Math.abs(getValue('acceleration_z') || 0),\n        getValue('rms_value') || 0\n      ];\n      \n      sensorData.push({\n        name: sensorName,\n        value: data\n      });\n    }\n  });\n}\n\n// 기본 데이터가 없으면 샘플 데이터\nif (sensorData.length === 0) {\n  sensorData.push(\n    { name: '센서 1', value: [2.5, 3.0, 2.8, 4.5] },\n    { name: '센서 2', value: [3.2, 2.9, 3.1, 5.2] }\n  );\n}\n\nconst colors = ['#409EFF', '#91cc75', '#fac858', '#ee6666', '#73c0de'];\n\nconst option = {\n  title: {\n    text: '센서별 진동 데이터 비교',\n    left: 'center',\n    textStyle: { color: '#fff' }\n  },\n  tooltip: {\n    formatter: function(params) {\n      const names = ['X축', 'Y축', 'Z축', 'RMS'];\n      let result = params.name + '<br/>';\n      params.value.forEach((val, idx) => {\n        result += names[idx] + ': ' + val.toFixed(2) + ' m/s²<br/>';\n      });\n      return result;\n    }\n  },\n  legend: {\n    data: sensorData.map(d => d.name),\n    bottom: 10,\n    textStyle: { color: '#fff' }\n  },\n  radar: {\n    indicator: [\n      { name: 'X축 가속도', max: 10 },\n      { name: 'Y축 가속도', max: 10 },\n      { name: 'Z축 가속도', max: 10 },\n      { name: 'RMS 값', max: 15 }\n    ],\n    center: ['50%', '55%'],\n    radius: '65%'\n  },\n  series: [{\n    type: 'radar',\n    data: sensorData.map((d, idx) => ({\n      value: d.value,\n      name: d.name,\n      areaStyle: { color: colors[idx % colors.length] + '40' },\n      lineStyle: { color: colors[idx % colors.length], width: 2 }\n    }))\n  }]\n};\nreturn option;"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT s.sensor_name, v.acceleration_x, v.acceleration_y, v.acceleration_z, v.rms_value FROM sensors s LEFT JOIN LATERAL (SELECT acceleration_x, acceleration_y, acceleration_z, rms_value FROM vibration_data WHERE sensor_id = s.sensor_id ORDER BY timestamp DESC LIMIT 1) v ON true WHERE s.status = 'active' LIMIT 5",
+          "refId": "A",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "type": "volkovlabs-echarts-panel",
+      "title": "센서별 RMS 값 게이지",
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "options": {
+        "getOption": "// 센서별 RMS 값 다중 게이지 차트\nconst dataSource = context?.panel?.data || context?.data || {};\nconst series = dataSource.series || [];\nconst gaugeData = [];\n\nif (series.length > 0) {\n  series.forEach((s, idx) => {\n    if (s.fields) {\n      const fields = s.fields;\n      const getValue = (fieldName) => {\n        const field = fields.find(f => f.name === fieldName || f.labels?.field === fieldName);\n        if (field && field.values && field.values.length > 0) {\n          return parseFloat(field.values[field.values.length - 1]) || 0;\n        }\n        return 0;\n      };\n      \n      const sensorName = getValue('sensor_name') || getValue('sensor_id') || `센서 ${idx + 1}`;\n      const rmsValue = getValue('rms_value') || 0;\n      \n      gaugeData.push({\n        name: sensorName,\n        value: rmsValue\n      });\n    }\n  });\n}\n\n// 기본 데이터가 없으면 샘플 데이터\nif (gaugeData.length === 0) {\n  gaugeData.push(\n    { name: '센서 1', value: 4.5 },\n    { name: '센서 2', value: 5.2 },\n    { name: '센서 3', value: 3.8 }\n  );\n}\n\nconst colors = ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de'];\nconst maxRms = 15;\nconst positions = ['20%', '50%', '80%'];\n\nconst option = {\n  series: gaugeData.slice(0, 3).map((d, idx) => ({\n    type: 'gauge',\n    center: [positions[idx] || '50%', '50%'],\n    radius: '70%',\n    min: 0,\n    max: maxRms,\n    splitNumber: 6,\n    axisLine: {\n      lineStyle: {\n        width: 15,\n        color: [[(d.value / maxRms), colors[idx % colors.length]], [1, '#e6ebf8']]\n      }\n    },\n    pointer: { itemStyle: { color: 'auto' } },\n    axisTick: { distance: -30, splitNumber: 5 },\n    splitLine: { distance: -30, length: 14 },\n    axisLabel: { distance: -40, fontSize: 11, color: '#999' },\n    detail: {\n      valueAnimation: true,\n      formatter: '{value} m/s²',\n      fontSize: 14,\n      offsetCenter: [0, '70%'],\n      color: '#fff'\n    },\n    title: {\n      offsetCenter: [0, '-20%'],\n      fontSize: 12,\n      color: '#fff'\n    },\n    data: [{ value: d.value, name: d.name }]\n  }))\n};\nreturn option;"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT s.sensor_name, v.rms_value FROM sensors s LEFT JOIN LATERAL (SELECT rms_value FROM vibration_data WHERE sensor_id = s.sensor_id ORDER BY timestamp DESC LIMIT 1) v ON true WHERE s.status = 'active' LIMIT 3",
+          "refId": "A",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "type": "volkovlabs-echarts-panel",
+      "title": "3D Scatter - 가속도 데이터",
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "options": {
+        "getOption": "// 3D Scatter 차트 - X, Y, Z 축 가속도\nconst dataSource = context?.panel?.data || context?.data || {};\nconst series = dataSource.series || [];\nconst scatterData = [];\n\nif (series.length > 0 && series[0].fields) {\n  const fields = series[0].fields;\n  const getField = (fieldName) => {\n    return fields.find(f => f.name === fieldName || f.labels?.field === fieldName);\n  };\n  \n  const xField = getField('acceleration_x');\n  const yField = getField('acceleration_y');\n  const zField = getField('acceleration_z');\n  const rmsField = getField('rms_value');\n  \n  if (xField && yField && zField && xField.values) {\n    const length = xField.values.length;\n    for (let i = 0; i < length; i++) {\n      const x = parseFloat(xField.values[i]) || 0;\n      const y = parseFloat(yField.values[i]) || 0;\n      const z = parseFloat(zField.values[i]) || 0;\n      const rms = rmsField ? (parseFloat(rmsField.values[i]) || 0) : 0;\n      \n      scatterData.push([x, y, z, rms]);\n    }\n  }\n}\n\n// 샘플 데이터 (데이터가 없을 경우)\nif (scatterData.length === 0) {\n  for (let i = 0; i < 50; i++) {\n    scatterData.push([\n      (Math.random() - 0.5) * 10,\n      (Math.random() - 0.5) * 10,\n      (Math.random() - 0.5) * 10,\n      Math.random() * 15\n    ]);\n  }\n}\n\nconst option = {\n  title: {\n    text: '3D 가속도 산점도',\n    left: 'center',\n    textStyle: { color: '#fff' }\n  },\n  tooltip: {\n    formatter: function(params) {\n      return `X: ${params.value[0].toFixed(2)} m/s²<br/>` +\n             `Y: ${params.value[1].toFixed(2)} m/s²<br/>` +\n             `Z: ${params.value[2].toFixed(2)} m/s²<br/>` +\n             `RMS: ${params.value[3].toFixed(2)} m/s²`;\n    }\n  },\n  visualMap: {\n    show: true,\n    dimension: 3,\n    min: 0,\n    max: 15,\n    inRange: {\n      color: ['#313695', '#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffcc', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026']\n    },\n    calculable: true,\n    textStyle: { color: '#fff' }\n  },\n  xAxis3D: {\n    type: 'value',\n    name: 'X축 가속도',\n    nameTextStyle: { color: '#fff' },\n    axisLine: { lineStyle: { color: '#fff' } },\n    axisLabel: { color: '#fff' }\n  },\n  yAxis3D: {\n    type: 'value',\n    name: 'Y축 가속도',\n    nameTextStyle: { color: '#fff' },\n    axisLine: { lineStyle: { color: '#fff' } },\n    axisLabel: { color: '#fff' }\n  },\n  zAxis3D: {\n    type: 'value',\n    name: 'Z축 가속도',\n    nameTextStyle: { color: '#fff' },\n    axisLine: { lineStyle: { color: '#fff' } },\n    axisLabel: { color: '#fff' }\n  },\n  grid3D: {\n    boxWidth: 200,\n    boxDepth: 200,\n    viewControl: {\n      projection: 'perspective',\n      autoRotate: false,\n      autoRotateDirection: 'cw',\n      autoRotateSpeed: 10,\n      rotateSensitivity: 1,\n      zoomSensitivity: 1,\n      panSensitivity: 1,\n      alpha: 20,\n      beta: 40\n    },\n    light: {\n      main: {\n        intensity: 1.2,\n        shadow: true\n      },\n      ambient: {\n        intensity: 0.3\n      }\n    }\n  },\n  series: [{\n    type: 'scatter3D',\n    data: scatterData,\n    symbolSize: 8,\n    itemStyle: {\n      opacity: 0.8\n    }\n  }]\n};\nreturn option;"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT acceleration_x, acceleration_y, acceleration_z, rms_value FROM vibration_data WHERE timestamp >= NOW() - INTERVAL '1 hour' ORDER BY timestamp DESC LIMIT 100",
+          "refId": "A",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "type": "volkovlabs-echarts-panel",
+      "title": "3D Line - 센서별 RMS 값 추이 (Waterfall)",
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "options": {
+        "getOption": "// 3D Line 차트 - 센서별 RMS 값 추이 (Waterfall 스타일)\nconst dataSource = context?.panel?.data || context?.data || {};\nconst series = dataSource.series || [];\n\n// 센서별 데이터 그룹화\nconst sensorMap = {};\nconst sensorIds = [];\n\nif (series.length > 0 && series[0].fields) {\n  const fields = series[0].fields;\n  const getField = (fieldName) => {\n    return fields.find(f => f.name === fieldName || f.labels?.field === fieldName);\n  };\n  \n  const timeField = getField('time') || getField('timestamp');\n  const sensorField = getField('sensor_id');\n  const valueField = getField('value') || getField('rms_value');\n  \n  if (timeField && sensorField && valueField && timeField.values) {\n    const length = timeField.values.length;\n    \n    for (let i = 0; i < length; i++) {\n      const sensorId = sensorField.values[i] || `sensor_${i}`;\n      const time = new Date(timeField.values[i]).getTime();\n      const value = parseFloat(valueField.values[i]) || 0;\n      \n      if (!sensorMap[sensorId]) {\n        sensorMap[sensorId] = [];\n        sensorIds.push(sensorId);\n      }\n      \n      sensorMap[sensorId].push({ time, value });\n    }\n  }\n}\n\n// 센서별로 정렬 및 데이터 준비\nconst MAX_SENSORS = 10;\nconst MAX_POINTS = 200;\nconst selectedSensors = sensorIds.slice(0, MAX_SENSORS);\n\n// 첫 번째 센서의 첫 번째 시간을 기준 시간으로 설정\nlet baseTime = null;\nif (selectedSensors.length > 0 && sensorMap[selectedSensors[0]] && sensorMap[selectedSensors[0]].length > 0) {\n  baseTime = sensorMap[selectedSensors[0]][0].time;\n}\n\n// 각 센서별 라인 데이터 생성\nconst lineSeries = selectedSensors.map((sensorId, sensorIdx) => {\n  const sensorData = sensorMap[sensorId] || [];\n  // 시간순 정렬\n  sensorData.sort((a, b) => a.time - b.time);\n  // 최근 데이터만 사용\n  const recentData = sensorData.slice(-MAX_POINTS);\n  \n  const lineData = recentData.map(point => {\n    const deltaTime = baseTime ? (point.time - baseTime) / 1000 / 60 : 0; // 분 단위\n    return [deltaTime, sensorIdx, point.value];\n  });\n  \n  return {\n    name: sensorId,\n    type: 'line3D',\n    data: lineData,\n    lineStyle: {\n      width: 2,\n      color: `hsl(${(sensorIdx * 360 / selectedSensors.length) % 360}, 70%, 60%)`\n    },\n    itemStyle: {\n      color: `hsl(${(sensorIdx * 360 / selectedSensors.length) % 360}, 70%, 60%)`,\n      opacity: 0.85\n    },\n    symbol: 'circle',\n    symbolSize: 3\n  };\n});\n\n// 샘플 데이터 (데이터가 없을 경우)\nif (lineSeries.length === 0) {\n  for (let sensorIdx = 0; sensorIdx < 5; sensorIdx++) {\n    const lineData = [];\n    for (let i = 0; i < 50; i++) {\n      lineData.push([\n        i * 2,\n        sensorIdx,\n        3 + Math.sin(i * 0.2 + sensorIdx) * 2 + Math.random() * 1\n      ]);\n    }\n    lineSeries.push({\n      name: `센서 ${sensorIdx + 1}`,\n      type: 'line3D',\n      data: lineData,\n      lineStyle: {\n        width: 2,\n        color: `hsl(${(sensorIdx * 72) % 360}, 70%, 60%)`\n      },\n      itemStyle: {\n        color: `hsl(${(sensorIdx * 72) % 360}, 70%, 60%)`,\n        opacity: 0.8\n      },\n      symbol: 'circle',\n      symbolSize: 3\n    });\n  }\n}\n\nconst option = {\n  title: {\n    text: '센서별 RMS 값 3D 추이 (Waterfall)',\n    left: 'center',\n    top: 10,\n    textStyle: { color: '#fff', fontSize: 14 }\n  },\n  tooltip: {\n    formatter: function(params) {\n      return `${params.seriesName}<br/>` +\n             `시간: ${params.value[0].toFixed(1)}분<br/>` +\n             `센서 인덱스: ${params.value[1]}<br/>` +\n             `RMS: ${params.value[2].toFixed(2)} m/s²`;\n    }\n  },\n  legend: {\n    data: selectedSensors,\n    top: 35,\n    left: 'center',\n    textStyle: { color: '#fff', fontSize: 10 },\n    type: 'scroll',\n    orient: 'horizontal',\n    itemWidth: 15,\n    itemHeight: 8\n  },\n  xAxis3D: {\n    type: 'value',\n    name: 'Δ Time (분)',\n    nameTextStyle: { color: '#fff', fontSize: 12 },\n    axisLine: { lineStyle: { color: '#fff', width: 2 } },\n    axisLabel: { color: '#fff', fontSize: 10 },\n    splitLine: { show: true, lineStyle: { color: 'rgba(255,255,255,0.1)' } },\n    splitNumber: 8\n  },\n  yAxis3D: {\n    type: 'value',\n    name: 'Sensor',\n    nameTextStyle: { color: '#fff', fontSize: 12 },\n    axisLine: { lineStyle: { color: '#fff', width: 2 } },\n    axisLabel: { \n      color: '#fff',\n      fontSize: 9,\n      formatter: function(value) {\n        const idx = Math.round(value);\n        const name = selectedSensors[idx] || idx;\n        return name.length > 8 ? name.substring(0, 8) + '...' : name;\n      }\n    },\n    splitLine: { show: true, lineStyle: { color: 'rgba(255,255,255,0.1)' } },\n    splitNumber: 5\n  },\n  zAxis3D: {\n    type: 'value',\n    name: 'RMS (m/s²)',\n    nameTextStyle: { color: '#fff', fontSize: 12 },\n    axisLine: { lineStyle: { color: '#fff', width: 2 } },\n    axisLabel: { color: '#fff', fontSize: 10 },\n    splitLine: { show: true, lineStyle: { color: 'rgba(255,255,255,0.1)' } },\n    splitNumber: 6\n  },\n  grid3D: {\n    boxWidth: 500,\n    boxDepth: 80,\n    boxHeight: 150,\n    viewControl: {\n      projection: 'perspective',\n      autoRotate: false,\n      autoRotateDirection: 'cw',\n      autoRotateSpeed: 10,\n      rotateSensitivity: 1,\n      zoomSensitivity: 1,\n      panSensitivity: 1,\n      alpha: 25,\n      beta: 0,\n      distance: 350,\n      minDistance: 200,\n      maxDistance: 600,\n      center: [0, 0, 0]\n    },\n    light: {\n      main: {\n        intensity: 1.2,\n        shadow: true\n      },\n      ambient: {\n        intensity: 0.3\n      }\n    }\n  },\n  series: lineSeries\n};\nreturn option;"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT timestamp AS time, sensor_id, rms_value AS value FROM vibration_data WHERE $__timeFilter(timestamp) ORDER BY timestamp DESC LIMIT 3000",
+          "refId": "A",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 26
+      },
+      "type": "volkovlabs-echarts-panel",
+      "title": "3D Surface - RMS 값 분포",
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "options": {
+        "getOption": "// 3D Surface 차트 - RMS 값 분포\nconst dataSource = context?.panel?.data || context?.data || {};\nconst series = dataSource.series || [];\nconst surfaceData = [];\n\nif (series.length > 0 && series[0].fields) {\n  const fields = series[0].fields;\n  const getField = (fieldName) => {\n    return fields.find(f => f.name === fieldName || f.labels?.field === fieldName);\n  };\n  \n  const xField = getField('acceleration_x');\n  const yField = getField('acceleration_y');\n  const zField = getField('rms_value');\n  \n  if (xField && yField && zField && xField.values) {\n    const length = xField.values.length;\n    for (let i = 0; i < length; i++) {\n      const x = parseFloat(xField.values[i]) || 0;\n      const y = parseFloat(yField.values[i]) || 0;\n      const z = parseFloat(zField.values[i]) || 0;\n      \n      surfaceData.push([x, y, z]);\n    }\n  }\n}\n\n// 샘플 데이터 (데이터가 없을 경우)\nif (surfaceData.length === 0) {\n  for (let i = 0; i < 20; i++) {\n    for (let j = 0; j < 20; j++) {\n      const x = (i - 10) * 0.5;\n      const y = (j - 10) * 0.5;\n      const z = Math.sqrt(x * x + y * y) + Math.random() * 2;\n      surfaceData.push([x, y, z]);\n    }\n  }\n}\n\nconst option = {\n  title: {\n    text: 'RMS 값 3D 분포',\n    left: 'center',\n    textStyle: { color: '#fff' }\n  },\n  tooltip: {},\n  xAxis3D: {\n    type: 'value',\n    name: 'X축 가속도',\n    nameTextStyle: { color: '#fff' },\n    axisLine: { lineStyle: { color: '#fff' } },\n    axisLabel: { color: '#fff' }\n  },\n  yAxis3D: {\n    type: 'value',\n    name: 'Y축 가속도',\n    nameTextStyle: { color: '#fff' },\n    axisLine: { lineStyle: { color: '#fff' } },\n    axisLabel: { color: '#fff' }\n  },\n  zAxis3D: {\n    type: 'value',\n    name: 'RMS 값',\n    nameTextStyle: { color: '#fff' },\n    axisLine: { lineStyle: { color: '#fff' } },\n    axisLabel: { color: '#fff' }\n  },\n  grid3D: {\n    boxWidth: 200,\n    boxDepth: 200,\n    viewControl: {\n      projection: 'perspective',\n      autoRotate: false,\n      rotateSensitivity: 1,\n      zoomSensitivity: 1,\n      panSensitivity: 1\n    },\n    light: {\n      main: {\n        intensity: 1.2,\n        shadow: true\n      },\n      ambient: {\n        intensity: 0.3\n      }\n    }\n  },\n  series: [{\n    type: 'surface',\n    wireframe: {\n      show: true,\n      lineStyle: {\n        color: '#409EFF',\n        opacity: 0.3\n      }\n    },\n    itemStyle: {\n      color: '#409EFF',\n      opacity: 0.6\n    },\n    data: surfaceData\n  }]\n};\nreturn option;"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT acceleration_x, acceleration_y, rms_value FROM vibration_data WHERE timestamp >= NOW() - INTERVAL '1 hour' ORDER BY timestamp DESC LIMIT 200",
+          "refId": "A",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 26
+      },
+      "type": "volkovlabs-echarts-panel",
+      "title": "Boxplot - 센서별 RMS 값 분포",
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "options": {
+        "getOption": "// Boxplot 차트 - 센서별 RMS 값 분포\nconst dataSource = context?.panel?.data || context?.data || {};\nconst series = dataSource.series || [];\n\n// 센서별 데이터 그룹화\nconst sensorDataMap = {};\nconst sensorNames = [];\n\nif (series.length > 0 && series[0].fields) {\n  const fields = series[0].fields;\n  const getField = (fieldName) => {\n    return fields.find(f => f.name === fieldName || f.labels?.field === fieldName);\n  };\n  \n  const sensorField = getField('sensor_name') || getField('sensor_id');\n  const rmsField = getField('rms_value');\n  \n  if (sensorField && rmsField && sensorField.values && rmsField.values) {\n    const length = Math.min(sensorField.values.length, rmsField.values.length);\n    \n    for (let i = 0; i < length; i++) {\n      const sensorName = sensorField.values[i] || `센서 ${i}`;\n      const rmsValue = parseFloat(rmsField.values[i]) || 0;\n      \n      if (!sensorDataMap[sensorName]) {\n        sensorDataMap[sensorName] = [];\n        sensorNames.push(sensorName);\n      }\n      \n      sensorDataMap[sensorName].push(rmsValue);\n    }\n  }\n}\n\n// Boxplot 데이터 생성 함수\nfunction calculateBoxplotData(values) {\n  if (!values || values.length === 0) return [0, 0, 0, 0, 0];\n  \n  const sorted = [...values].sort((a, b) => a - b);\n  const q1Index = Math.floor(sorted.length * 0.25);\n  const medianIndex = Math.floor(sorted.length * 0.5);\n  const q3Index = Math.floor(sorted.length * 0.75);\n  \n  const min = sorted[0];\n  const q1 = sorted[q1Index];\n  const median = sorted[medianIndex];\n  const q3 = sorted[q3Index];\n  const max = sorted[sorted.length - 1];\n  \n  return [min, q1, median, q3, max];\n}\n\n// Boxplot 데이터 준비\nconst boxplotData = sensorNames.map(name => {\n  const values = sensorDataMap[name] || [];\n  return calculateBoxplotData(values);\n});\n\n// 샘플 데이터 (데이터가 없을 경우)\nif (boxplotData.length === 0) {\n  sensorNames.push('센서 1', '센서 2', '센서 3', '센서 4', '센서 5');\n  boxplotData.push(\n    calculateBoxplotData([2.1, 2.5, 3.0, 3.2, 3.5, 3.8, 4.0, 4.2, 4.5]),\n    calculateBoxplotData([3.0, 3.5, 4.0, 4.5, 5.0, 5.2, 5.5, 5.8, 6.0]),\n    calculateBoxplotData([1.5, 2.0, 2.5, 3.0, 3.2, 3.5, 3.8, 4.0, 4.2]),\n    calculateBoxplotData([4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0]),\n    calculateBoxplotData([2.5, 3.0, 3.5, 4.0, 4.2, 4.5, 4.8, 5.0, 5.2])\n  );\n}\n\nconst option = {\n  title: {\n    text: '센서별 RMS 값 분포 (Boxplot)',\n    left: 'center',\n    textStyle: { color: '#fff' }\n  },\n  tooltip: {\n    trigger: 'item',\n    formatter: function(params) {\n      const data = params.value;\n      return `${params.name}<br/>` +\n             `최소값: ${data[0].toFixed(2)} m/s²<br/>` +\n             `1사분위수: ${data[1].toFixed(2)} m/s²<br/>` +\n             `중앙값: ${data[2].toFixed(2)} m/s²<br/>` +\n             `3사분위수: ${data[3].toFixed(2)} m/s²<br/>` +\n             `최대값: ${data[4].toFixed(2)} m/s²`;\n    }\n  },\n  grid: {\n    left: '10%',\n    right: '10%',\n    bottom: '15%',\n    top: '15%'\n  },\n  xAxis: {\n    type: 'category',\n    data: sensorNames,\n    boundaryGap: true,\n    nameGap: 30,\n    splitArea: {\n      show: false\n    },\n    splitLine: {\n      show: false\n    },\n    axisLabel: {\n      color: '#fff',\n      rotate: 45\n    },\n    axisLine: {\n      lineStyle: {\n        color: '#fff'\n      }\n    }\n  },\n  yAxis: {\n    type: 'value',\n    name: 'RMS 값 (m/s²)',\n    nameTextStyle: { color: '#fff' },\n    splitArea: {\n      show: true,\n      areaStyle: {\n        color: ['rgba(250,250,250,0.05)', 'rgba(200,200,200,0.05)']\n      }\n    },\n    axisLabel: {\n      color: '#fff'\n    },\n    axisLine: {\n      lineStyle: {\n        color: '#fff'\n      }\n    }\n  },\n  series: [\n    {\n      name: 'boxplot',\n      type: 'boxplot',\n      data: boxplotData,\n      itemStyle: {\n        color: '#409EFF',\n        borderColor: '#1e90ff'\n      },\n      emphasis: {\n        itemStyle: {\n          color: '#66b3ff',\n          borderColor: '#1e90ff',\n          borderWidth: 2\n        }\n      }\n    },\n    {\n      name: 'outlier',\n      type: 'scatter',\n      data: [] // 이상치 데이터 (필요시 추가)\n    }\n  ]\n};\nreturn option;"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT s.sensor_name, v.rms_value FROM sensors s JOIN vibration_data v ON s.sensor_id = v.sensor_id WHERE v.timestamp >= NOW() - INTERVAL '1 hour' AND s.status = 'active' ORDER BY s.sensor_name, v.timestamp",
+          "refId": "A",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 36
+      },
+      "type": "volkovlabs-echarts-panel",
+      "title": "Boxplot - 가속도 축별 분포",
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "options": {
+        "getOption": "// Boxplot 차트 - X, Y, Z 축 가속도 분포 비교\nconst dataSource = context?.panel?.data || context?.data || {};\nconst series = dataSource.series || [];\n\nconst xValues = [];\nconst yValues = [];\nconst zValues = [];\n\nif (series.length > 0 && series[0].fields) {\n  const fields = series[0].fields;\n  const getField = (fieldName) => {\n    return fields.find(f => f.name === fieldName || f.labels?.field === fieldName);\n  };\n  \n  const xField = getField('acceleration_x');\n  const yField = getField('acceleration_y');\n  const zField = getField('acceleration_z');\n  \n  if (xField && yField && zField && xField.values) {\n    const length = xField.values.length;\n    for (let i = 0; i < length; i++) {\n      xValues.push(Math.abs(parseFloat(xField.values[i]) || 0));\n      yValues.push(Math.abs(parseFloat(yField.values[i]) || 0));\n      zValues.push(Math.abs(parseFloat(zField.values[i]) || 0));\n    }\n  }\n}\n\n// Boxplot 데이터 생성 함수\nfunction calculateBoxplotData(values) {\n  if (!values || values.length === 0) return [0, 0, 0, 0, 0];\n  \n  const sorted = [...values].sort((a, b) => a - b);\n  const q1Index = Math.floor(sorted.length * 0.25);\n  const medianIndex = Math.floor(sorted.length * 0.5);\n  const q3Index = Math.floor(sorted.length * 0.75);\n  \n  const min = sorted[0];\n  const q1 = sorted[q1Index];\n  const median = sorted[medianIndex];\n  const q3 = sorted[q3Index];\n  const max = sorted[sorted.length - 1];\n  \n  return [min, q1, median, q3, max];\n}\n\n// 샘플 데이터 (데이터가 없을 경우)\nif (xValues.length === 0) {\n  for (let i = 0; i < 50; i++) {\n    xValues.push(Math.random() * 10);\n    yValues.push(Math.random() * 10);\n    zValues.push(Math.random() * 10);\n  }\n}\n\nconst boxplotData = [\n  calculateBoxplotData(xValues),\n  calculateBoxplotData(yValues),\n  calculateBoxplotData(zValues)\n];\n\nconst axisNames = ['X축 가속도', 'Y축 가속도', 'Z축 가속도'];\nconst colors = ['#409EFF', '#91cc75', '#fac858'];\n\nconst option = {\n  title: {\n    text: '가속도 축별 분포 비교 (Boxplot)',\n    left: 'center',\n    textStyle: { color: '#fff' }\n  },\n  tooltip: {\n    trigger: 'item',\n    formatter: function(params) {\n      const data = params.value;\n      const axisName = axisNames[params.dataIndex];\n      return `${axisName}<br/>` +\n             `최소값: ${data[0].toFixed(2)} m/s²<br/>` +\n             `1사분위수: ${data[1].toFixed(2)} m/s²<br/>` +\n             `중앙값: ${data[2].toFixed(2)} m/s²<br/>` +\n             `3사분위수: ${data[3].toFixed(2)} m/s²<br/>` +\n             `최대값: ${data[4].toFixed(2)} m/s²`;\n    }\n  },\n  legend: {\n    data: axisNames,\n    top: 30,\n    textStyle: { color: '#fff' }\n  },\n  grid: {\n    left: '10%',\n    right: '10%',\n    bottom: '15%',\n    top: '20%'\n  },\n  xAxis: {\n    type: 'category',\n    data: axisNames,\n    boundaryGap: true,\n    nameGap: 30,\n    splitArea: {\n      show: false\n    },\n    splitLine: {\n      show: false\n    },\n    axisLabel: {\n      color: '#fff'\n    },\n    axisLine: {\n      lineStyle: {\n        color: '#fff'\n      }\n    }\n  },\n  yAxis: {\n    type: 'value',\n    name: '가속도 (m/s²)',\n    nameTextStyle: { color: '#fff' },\n    splitArea: {\n      show: true,\n      areaStyle: {\n        color: ['rgba(250,250,250,0.05)', 'rgba(200,200,200,0.05)']\n      }\n    },\n    axisLabel: {\n      color: '#fff'\n    },\n    axisLine: {\n      lineStyle: {\n        color: '#fff'\n      }\n    }\n  },\n  series: boxplotData.map((data, idx) => ({\n    name: axisNames[idx],\n    type: 'boxplot',\n    data: [data],\n    xAxisIndex: 0,\n    yAxisIndex: 0,\n    itemStyle: {\n      color: colors[idx],\n      borderColor: colors[idx]\n    },\n    emphasis: {\n      itemStyle: {\n        borderWidth: 2\n      }\n    }\n  }))\n};\nreturn option;"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT acceleration_x, acceleration_y, acceleration_z FROM vibration_data WHERE timestamp >= NOW() - INTERVAL '1 hour' ORDER BY timestamp DESC LIMIT 100",
+          "refId": "A",
+          "format": "table"
+        }
+      ]
+    }
+  ],
+  "style": "dark",
+  "templating": {
+    "list": []
+  },
+  "timepicker": {},
+  "uid": "echarts-vibration-dashboard",
+  "weekStart": ""
+}

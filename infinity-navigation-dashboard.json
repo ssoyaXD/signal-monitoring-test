@@ -1,0 +1,467 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "Infinity"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "displayMode": "color-background",
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "계층"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 120
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "설비명"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 350
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-text"
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "대시보드로 이동",
+                    "url": "${__value.raw}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "아이콘"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "위치"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 200
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "설명"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 400
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/power_complex/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/plant/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/area_system/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "yellow"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/equipment/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/component/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/measurement_point/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 25,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": false,
+            "displayName": "경로"
+          }
+        ]
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "Infinity"
+          },
+          "refId": "A",
+          "type": "postgres",
+          "source": "postgres",
+          "parser": "backend",
+          "parserOptions": [],
+          "filterExpression": "",
+          "uql": "",
+          "format": "table",
+          "root_selector": "",
+          "columns": [],
+          "global_query": "",
+          "query": "SELECT \n  eht.level_name as \"계층\",\n  REPEAT('  ', eht.depth) || CASE \n    WHEN eht.depth > 0 THEN '└─ '\n    ELSE ''\n  END || eht.name as \"설비명\",\n  COALESCE(eht.icon, '') as \"아이콘\",\n  COALESCE(eht.functional_location, '') as \"위치\",\n  COALESCE(eht.description, '') as \"설명\",\n  COALESCE(eht.system_asset_id, '') as \"시스템 ID\",\n  COALESCE(eht.dashboard_url, '') as \"대시보드 URL\",\n  eht.level_order as \"레벨\",\n  eht.depth as \"깊이\",\n  eht.path as \"경로\"\nFROM equipment_hierarchy_tree eht\nORDER BY eht.path;",
+          "postgresOptions": {
+            "host": "postgres",
+            "port": 5432,
+            "database": "vibration_db",
+            "username": "postgres",
+            "password": "postgres",
+            "ssl": false
+          }
+        }
+      ],
+      "title": "Infinity 데이터소스 네비게이션",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "레벨": true,
+              "깊이": true,
+              "경로": true,
+              "대시보드 URL": true
+            },
+            "indexByName": {
+              "계층": 0,
+              "설비명": 1,
+              "아이콘": 2,
+              "위치": 3,
+              "설명": 4,
+              "시스템 ID": 5
+            },
+            "renameByName": {}
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "Infinity"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 25
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "Infinity"
+          },
+          "refId": "A",
+          "type": "postgres",
+          "source": "postgres",
+          "parser": "backend",
+          "parserOptions": [],
+          "filterExpression": "",
+          "uql": "",
+          "format": "table",
+          "root_selector": "",
+          "columns": [],
+          "global_query": "",
+          "query": "SELECT \n  CASE \n    WHEN level_name = 'power_complex' THEN '발전소 단지'\n    WHEN level_name = 'plant' THEN '호기'\n    WHEN level_name = 'area_system' THEN '계통'\n    WHEN level_name = 'equipment' THEN '설비'\n    WHEN level_name = 'component' THEN '구성요소'\n    WHEN level_name = 'measurement_point' THEN '측정포인트'\n    ELSE level_name\n  END as \"계층\",\n  COUNT(*) as \"개수\"\nFROM equipment_hierarchy\nWHERE is_active = true\nGROUP BY level_name\nORDER BY \n  CASE level_name\n    WHEN 'power_complex' THEN 1\n    WHEN 'plant' THEN 2\n    WHEN 'area_system' THEN 3\n    WHEN 'equipment' THEN 4\n    WHEN 'component' THEN 5\n    WHEN 'measurement_point' THEN 6\n    ELSE 7\n  END;",
+          "postgresOptions": {
+            "host": "postgres",
+            "port": 5432,
+            "database": "vibration_db",
+            "username": "postgres",
+            "password": "postgres",
+            "ssl": false
+          }
+        }
+      ],
+      "title": "계층별 설비 수 (Infinity)",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "Infinity"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 25
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "Infinity"
+          },
+          "refId": "A",
+          "type": "json",
+          "source": "inline",
+          "parser": "backend",
+          "parserOptions": [],
+          "filterExpression": "",
+          "uql": "",
+          "format": "table",
+          "root_selector": "",
+          "columns": [],
+          "global_query": "",
+          "data": "[\n  {\"level\": \"발전소 단지\", \"count\": 2, \"color\": \"blue\"},\n  {\"level\": \"호기\", \"count\": 3, \"color\": \"green\"},\n  {\"level\": \"계통\", \"count\": 3, \"color\": \"yellow\"},\n  {\"level\": \"설비\", \"count\": 5, \"color\": \"orange\"},\n  {\"level\": \"구성요소\", \"count\": 3, \"color\": \"purple\"},\n  {\"level\": \"측정포인트\", \"count\": 7, \"color\": \"red\"}\n]"
+        }
+      ],
+      "title": "계층별 통계 (JSON 예제)",
+      "type": "stat"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": [
+    "infinity",
+    "navigation",
+    "equipment",
+    "hierarchy"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Infinity 데이터소스 네비게이션 대시보드",
+  "uid": "infinity-navigation-dashboard",
+  "version": 0,
+  "weekStart": ""
+}
+

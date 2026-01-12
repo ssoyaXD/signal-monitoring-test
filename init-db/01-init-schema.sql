@@ -75,3 +75,4 @@ COMMENT ON COLUMN vibration_data.acceleration_z IS 'Z축 가속도 (m/s²)';
 COMMENT ON COLUMN vibration_data.rms_value IS 'RMS 진동값 (m/s²)';
 
 
+

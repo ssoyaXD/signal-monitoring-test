@@ -30,7 +30,10 @@ BEGIN
     FOREACH sensor_id IN ARRAY sensor_list
     LOOP
         sensor_idx := array_position(sensor_list, sensor_id);
-        base_rms := 5.0 + sensor_idx * 2.0;
+        -- 센서별 기본 RMS 값 증가 (일부 센서는 alert/fault 범위에 도달하도록)
+        -- SENSOR_001: 5-8 (normal), SENSOR_002: 8-11 (normal-alert)
+        -- SENSOR_003: 11-14 (alert), SENSOR_004: 14-17 (alert-fault), SENSOR_005: 17-20 (fault)
+        base_rms := 5.0 + sensor_idx * 3.0;
         current_ts := start_time;
 
         -- 1일치 데이터 생성 (1분 간격)
@@ -38,12 +41,18 @@ BEGIN
             -- 시간 오프셋 계산 (분 단위)
             time_offset_minutes := EXTRACT(EPOCH FROM (current_ts - start_time))::INT / 60;
 
-            -- RMS 값 계산 (사인파 기반)
+            -- RMS 값 계산 (사인파 기반, 더 큰 변동폭)
             rms_val := base_rms +
                        2.0 * SIN(2 * PI() * 1 * time_offset_minutes / 60.0) +
                        1.5 * SIN(2 * PI() * 2 * time_offset_minutes / 60.0) +
                        1.0 * SIN(2 * PI() * 3 * time_offset_minutes / 60.0) +
                        (RANDOM() - 0.5) * 0.5;
+
+            -- 일부 센서는 시간대별로 alert/fault 상태가 나타나도록 추가 변동
+            IF sensor_idx >= 2 THEN
+                rms_val := rms_val + SIN(EXTRACT(HOUR FROM current_ts)::numeric / 24.0 * 2 * PI()) * 5.0;
+            END IF;
+
             rms_val := GREATEST(0, rms_val);
 
             -- 가속도 값 생성
@@ -59,11 +68,11 @@ BEGIN
             -- 온도
             temp_val := 20 + sensor_idx * 2 + (RANDOM() * 5);
 
-            -- 상태 결정
-            IF rms_val > 20.0 THEN
-                status_val := 'critical';
-            ELSIF rms_val > 15.0 THEN
-                status_val := 'warning';
+            -- 상태 결정 (기준: normal 0-10, warning/alert 10-15, critical/fault 15+)
+            IF rms_val >= 15.0 THEN
+                status_val := 'critical';  -- fault
+            ELSIF rms_val >= 10.0 THEN
+                status_val := 'warning';   -- alert
             ELSE
                 status_val := 'normal';
             END IF;

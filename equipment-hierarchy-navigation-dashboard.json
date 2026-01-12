@@ -1,0 +1,662 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "displayMode": "color-background",
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "계층"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 100
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "설비명"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 300
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-text"
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "대시보드로 이동",
+                    "url": "${__value.raw}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "아이콘"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 60
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-text"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "위치"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 200
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "설명"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 400
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "대시보드 URL"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/power_complex/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/plant/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/area_system/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "yellow"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/equipment/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/component/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/measurement_point/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 25,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": false,
+            "displayName": "경로"
+          }
+        ]
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  eht.level_name as \"계층\",\n  REPEAT('  ', eht.depth) || CASE \n    WHEN eht.depth > 0 THEN '└─ '\n    ELSE ''\n  END || eht.name as \"설비명\",\n  COALESCE(eht.icon, '') as \"아이콘\",\n  COALESCE(eht.functional_location, '') as \"위치\",\n  COALESCE(eht.description, '') as \"설명\",\n  COALESCE(eht.system_asset_id, '') as \"시스템 ID\",\n  COALESCE(eht.dashboard_url, '') as \"대시보드 URL\",\n  eht.level_order as \"레벨\",\n  eht.depth as \"깊이\",\n  eht.path as \"경로\"\nFROM equipment_hierarchy_tree eht\nWHERE eht.is_active = true\n  AND ('$power_complex' = '$__all' OR eht.full_path LIKE '%' || '$power_complex' || '%')\n  AND ('$level_filter' = '$__all' OR eht.level_name = ANY(string_to_array('$level_filter', ',')))\nORDER BY eht.path;",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "string"
+              }
+            ],
+            "groupBy": [],
+            "metricColumn": "none"
+          }
+        }
+      ],
+      "title": "설비 계층 구조 네비게이션",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "레벨": true,
+              "깊이": true,
+              "경로": true,
+              "대시보드 URL": true
+            },
+            "indexByName": {
+              "계층": 0,
+              "설비명": 1,
+              "아이콘": 2,
+              "위치": 3,
+              "설명": 4,
+              "시스템 ID": 5
+            },
+            "renameByName": {}
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 25
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  DATE_TRUNC('day', created_at) as time,\n  level_name as metric,\n  COUNT(*) as value\nFROM equipment_hierarchy\nWHERE created_at >= NOW() - INTERVAL '30 days'\nGROUP BY DATE_TRUNC('day', created_at), level_name\nORDER BY time;",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [
+                  {
+                    "name": "time",
+                    "type": "timestamp"
+                  }
+                ],
+                "type": "time"
+              },
+              {
+                "parameters": [
+                  {
+                    "name": "metric",
+                    "type": "string"
+                  }
+                ],
+                "type": "string"
+              },
+              {
+                "parameters": [
+                  {
+                    "name": "value",
+                    "type": "number"
+                  }
+                ],
+                "type": "number"
+              }
+            ],
+            "groupBy": [
+              {
+                "name": "level_name",
+                "type": "string"
+              }
+            ],
+            "metricColumn": "level_name"
+          }
+        }
+      ],
+      "title": "계층별 등록 추이",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 25
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  level_name as level_name,\n  COUNT(*) as count\nFROM equipment_hierarchy\nWHERE is_active = true\nGROUP BY level_name\nORDER BY \n  CASE level_name\n    WHEN 'power_complex' THEN 1\n    WHEN 'plant' THEN 2\n    WHEN 'area_system' THEN 3\n    WHEN 'equipment' THEN 4\n    WHEN 'component' THEN 5\n    WHEN 'measurement_point' THEN 6\n    ELSE 7\n  END;",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "string"
+              },
+              {
+                "parameters": [],
+                "type": "number"
+              }
+            ],
+            "groupBy": [],
+            "metricColumn": "none"
+          }
+        }
+      ],
+      "title": "계층별 설비 수",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 33
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT \n  CASE \n    WHEN level_name = 'power_complex' THEN '발전소 단지'\n    WHEN level_name = 'plant' THEN '호기'\n    WHEN level_name = 'area_system' THEN '계통'\n    WHEN level_name = 'equipment' THEN '설비'\n    WHEN level_name = 'component' THEN '구성요소'\n    WHEN level_name = 'measurement_point' THEN '측정포인트'\n    ELSE level_name\n  END as \"계층\",\n  name as \"이름\",\n  functional_location as \"위치\",\n  system_asset_id as \"시스템 ID\"\nFROM equipment_hierarchy\nWHERE is_active = true\nORDER BY level_order, display_order\nLIMIT 50;",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "string"
+              }
+            ],
+            "groupBy": [],
+            "metricColumn": "none"
+          }
+        }
+      ],
+      "title": "설비 목록 (최근 50개)",
+      "type": "table"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": [
+    "equipment",
+    "hierarchy",
+    "navigation",
+    "vibration"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "postgres",
+          "uid": "PostgreSQL"
+        },
+        "definition": "SELECT DISTINCT name FROM equipment_hierarchy WHERE level_name = 'power_complex' AND is_active = true ORDER BY name",
+        "hide": 0,
+        "includeAll": true,
+        "label": "발전소 단지",
+        "multi": true,
+        "name": "power_complex",
+        "options": [],
+        "query": {
+          "query": "SELECT DISTINCT name FROM equipment_hierarchy WHERE level_name = 'power_complex' AND is_active = true ORDER BY name",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "postgres",
+          "uid": "PostgreSQL"
+        },
+        "definition": "SELECT DISTINCT level_name FROM equipment_hierarchy WHERE is_active = true ORDER BY level_order",
+        "hide": 0,
+        "includeAll": true,
+        "label": "계층 레벨",
+        "multi": true,
+        "name": "level_filter",
+        "options": [],
+        "query": {
+          "query": "SELECT DISTINCT level_name FROM equipment_hierarchy WHERE is_active = true ORDER BY level_order",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "설비 계층 구조 네비게이션 대시보드",
+  "uid": "equipment-hierarchy-navigation",
+  "version": 0,
+  "weekStart": ""
+}
+

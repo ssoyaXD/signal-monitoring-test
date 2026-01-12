@@ -50,13 +50,25 @@ def insert_vibration_data(conn, sensor_id, timestamp, batch_size=100):
     cursor = conn.cursor()
 
     sensor_index = SENSOR_IDS.index(sensor_id)
-    base_rms = 5.0 + sensor_index * 2.0  # 센서별 기본 RMS 값
+    # 센서별 기본 RMS 값 (일부 센서는 alert/fault 범위에 도달하도록)
+    # SENSOR_001: 5-8 (normal)
+    # SENSOR_002: 8-11 (normal-alert)
+    # SENSOR_003: 11-14 (alert)
+    # SENSOR_004: 14-17 (alert-fault)
+    # SENSOR_005: 17-20 (fault)
+    base_rms = 5.0 + sensor_index * 3.0  # 센서별 기본 RMS 값 증가
 
     # 시간 오프셋 계산 (타임스탬프를 초로 변환)
     time_offset = (timestamp - datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
 
-    # 진동값 생성
+    # 진동값 생성 (더 큰 변동폭으로 alert/fault 상태 생성)
     rms = generate_vibration_value(base_rms, time_offset, sensor_index)
+
+    # 일부 센서는 시간대별로 alert/fault 상태가 나타나도록 추가 변동
+    hour_factor = timestamp.hour / 24.0  # 시간에 따른 변동
+    if sensor_index >= 2:  # SENSOR_003 이상
+        rms += math.sin(hour_factor * 2 * math.pi) * 5.0  # ±5 범위 추가 변동
+
     accel_x = rms * random.uniform(0.8, 1.2)
     accel_y = rms * random.uniform(0.8, 1.2)
     accel_z = rms * random.uniform(0.8, 1.2)
@@ -66,8 +78,13 @@ def insert_vibration_data(conn, sensor_id, timestamp, batch_size=100):
     freq_2 = abs(1.5 * math.sin(2 * math.pi * 2 * time_offset / 60.0))
     freq_3 = abs(1.0 * math.sin(2 * math.pi * 3 * time_offset / 60.0))
 
-    # 상태 결정 (RMS 값이 높으면 경고)
-    status = 'warning' if rms > 15.0 else ('critical' if rms > 20.0 else 'normal')
+    # 상태 결정 (기준: normal 0-10, warning/alert 10-15, critical/fault 15+)
+    if rms >= 15.0:
+        status = 'critical'  # fault
+    elif rms >= 10.0:
+        status = 'warning'   # alert
+    else:
+        status = 'normal'
 
     temperature = generate_temperature(sensor_index)
 

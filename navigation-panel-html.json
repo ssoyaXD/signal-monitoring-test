@@ -1,0 +1,75 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PostgreSQL"
+      },
+      "gridPos": {
+        "h": 25,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "code": {
+          "language": "html",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "<div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; padding: 20px;\">\n  <h2 style=\"color: #5794F2; margin-bottom: 20px;\">📋 네비게이션 메뉴</h2>\n  \n  <div id=\"navigation-menu\" style=\"display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;\">\n    <!-- 메뉴 항목들이 여기에 동적으로 생성됩니다 -->\n  </div>\n</div>\n\n<script>\n  // 데이터베이스에서 메뉴 데이터 가져오기\n  async function loadNavigationMenu() {\n    // Grafana의 데이터소스를 통해 데이터를 가져옵니다\n    // 실제로는 Grafana의 변수나 쿼리를 통해 데이터를 받아옵니다\n    \n    const menuData = [\n      { id: 1, title: '대시보드 홈', url: '/d/home', icon: '🏠', category: 'main', description: '메인 대시보드로 이동' },\n      { id: 2, title: '시스템 모니터링', url: '/d/system', icon: '🖥️', category: 'monitoring', description: '시스템 리소스 모니터링', children: [\n        { title: 'CPU 모니터링', url: '/d/system-cpu', icon: '💻' },\n        { title: '메모리 모니터링', url: '/d/system-memory', icon: '🧠' },\n        { title: '디스크 모니터링', url: '/d/system-disk', icon: '💾' },\n        { title: '네트워크 모니터링', url: '/d/system-network', icon: '🌐' }\n      ]},\n      { id: 3, title: '센서 데이터', url: '/d/sensors', icon: '📊', category: 'data', description: '센서 데이터 조회', children: [\n        { title: '진동 데이터', url: '/d/vibration', icon: '📈' },\n        { title: '온도 데이터', url: '/d/temperature', icon: '🌡️' },\n        { title: '압력 데이터', url: '/d/pressure', icon: '🔧' },\n        { title: '센서 목록', url: '/d/sensor-list', icon: '📋' }\n      ]},\n      { id: 4, title: '알림 설정', url: '/d/alerts', icon: '🔔', category: 'settings', description: '알림 규칙 관리', children: [\n        { title: '알림 규칙', url: '/d/alert-rules', icon: '⚠️' },\n        { title: '알림 이력', url: '/d/alert-history', icon: '📜' },\n        { title: '알림 채널', url: '/d/alert-channels', icon: '📧' }\n      ]},\n      { id: 5, title: '리포트', url: '/d/reports', icon: '📄', category: 'reports', description: '리포트 생성 및 조회', children: [\n        { title: '일일 리포트', url: '/d/report-daily', icon: '📅' },\n        { title: '주간 리포트', url: '/d/report-weekly', icon: '📆' },\n        { title: '월간 리포트', url: '/d/report-monthly', icon: '🗓️' }\n      ]}\n    ];\n    \n    renderMenu(menuData);\n  }\n  \n  function renderMenu(menuData) {\n    const container = document.getElementById('navigation-menu');\n    container.innerHTML = '';\n    \n    menuData.forEach(item => {\n      const card = document.createElement('div');\n      card.style.cssText = 'background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 20px; transition: all 0.3s ease; cursor: pointer;';\n      card.onmouseover = () => card.style.background = 'rgba(255, 255, 255, 0.1)';\n      card.onmouseout = () => card.style.background = 'rgba(255, 255, 255, 0.05)';\n      card.onclick = () => {\n        if (item.url) {\n          window.location.href = item.url;\n        }\n      };\n      \n      card.innerHTML = `\n        <div style=\"display: flex; align-items: center; margin-bottom: 10px;\">\n          <span style=\"font-size: 24px; margin-right: 10px;\">${item.icon || '📌'}</span>\n          <h3 style=\"margin: 0; color: #5794F2; font-size: 18px;\">${item.title}</h3>\n        </div>\n        <p style=\"color: #8C8C8C; margin: 10px 0; font-size: 14px;\">${item.description || ''}</p>\n        ${item.children ? `<div style=\"margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1);\">\n          ${item.children.map(child => `\n            <div style=\"display: flex; align-items: center; padding: 8px 0; color: #B7B7B7; font-size: 14px;\">\n              <span style=\"margin-right: 8px;\">${child.icon || '→'}</span>\n              <a href=\"${child.url}\" style=\"color: #B7B7B7; text-decoration: none;\" onclick=\"event.stopPropagation();\">${child.title}</a>\n            </div>\n          `).join('')}\n        </div>` : ''}\n      `;\n      \n      container.appendChild(card);\n    });\n  }\n  \n  // 페이지 로드 시 메뉴 로드\n  loadNavigationMenu();\n</script>",
+          "mode": "html"
+        }
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [],
+      "title": "HTML 네비게이션 메뉴",
+      "type": "text"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": [
+    "navigation",
+    "menu",
+    "html"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "HTML 네비게이션 대시보드",
+  "uid": "navigation-html-dashboard",
+  "version": 0,
+  "weekStart": ""
+}
+

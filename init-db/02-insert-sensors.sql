@@ -8,3 +8,4 @@ INSERT INTO sensors (sensor_id, sensor_name, location, machine_type, status) VAL
 ON CONFLICT (sensor_id) DO NOTHING;
 
 
+
